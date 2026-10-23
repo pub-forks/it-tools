@@ -28,9 +28,8 @@ app.use(createHead());
 app.use(i18nPlugin);
 app.use(router);
 app.use(naive);
-if (!isGaiaEmbed) {
-  app.use(plausible);
-}
+// GAIA: Embedded builds alias plausible to a no-op stub that still provides the tracker.
+app.use(plausible);
 app.use(shadow);
 
 if (isGaiaEmbed) {
