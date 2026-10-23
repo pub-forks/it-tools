@@ -23,7 +23,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Build embedded distribution
-        run: BASE_URL=/apps/it-tools/ VITE_GAIA_EMBED=1 NODE_OPTIONS=--max_old_space_size=4096 pnpm exec vite build
+        run: BASE_URL=/api/it-tools/app/ VITE_GAIA_EMBED=1 NODE_OPTIONS=--max_old_space_size=4096 pnpm exec vite build
       - name: Package distribution
         shell: bash
         run: |
