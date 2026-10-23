@@ -4,10 +4,13 @@ import { useStyleStore } from '@/stores/style.store';
 
 const styleStore = useStyleStore();
 const { isDarkTheme } = toRefs(styleStore);
+// GAIA: External upstream links are hidden in the embedded tool frame.
+const isGaiaEmbed = import.meta.env.VITE_GAIA_EMBED === '1';
 </script>
 
 <template>
-  <c-tooltip :tooltip="$t('home.nav.github')" position="bottom">
+  <!-- GAIA: Keep repository promotion out of the embedded frame. -->
+  <c-tooltip v-if="!isGaiaEmbed" :tooltip="$t('home.nav.github')" position="bottom">
     <c-button
       circle
       variant="text"

@@ -19,6 +19,8 @@ const themeVars = useThemeVars();
 const styleStore = useStyleStore();
 const version = config.app.version;
 const commitSha = config.app.lastCommitSha.slice(0, 7);
+// GAIA: Hide repository, sponsor, and promotional chrome in the embedded frame.
+const isGaiaEmbed = import.meta.env.VITE_GAIA_EMBED === '1';
 
 const { tracker } = useTracker();
 const { t } = useI18n();
@@ -60,7 +62,8 @@ const tools = computed<ToolCategory[]>(() => [
         <CollapsibleToolMenu :tools-by-category="tools" />
 
         <div class="footer">
-          <div>
+          <!-- GAIA: Hide upstream project links from the embedded footer. -->
+          <div v-if="!isGaiaEmbed">
             IT-Tools
 
             <c-link target="_blank" rel="noopener" :href="`https://github.com/CorentinTh/it-tools/tree/v${version}`">
@@ -79,7 +82,7 @@ const tools = computed<ToolCategory[]>(() => [
               </c-link>
             </template>
           </div>
-          <div>
+          <div v-if="!isGaiaEmbed">
             © {{ new Date().getFullYear() }}
             <c-link target="_blank" rel="noopener" href="https://corentin.tech?utm_source=it-tools&utm_medium=footer">
               Corentin Thomasset
@@ -120,7 +123,8 @@ const tools = computed<ToolCategory[]>(() => [
           <NavbarButtons v-if="!styleStore.isSmallScreen" />
         </div>
 
-        <c-tooltip position="bottom" :tooltip="$t('home.support')">
+        <!-- GAIA: The support button is unrelated to the embedded tool experience. -->
+        <c-tooltip v-if="!isGaiaEmbed" position="bottom" :tooltip="$t('home.support')">
           <c-button
             round
             href="https://www.buymeacoffee.com/cthmsst"

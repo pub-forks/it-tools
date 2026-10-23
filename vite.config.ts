@@ -17,6 +17,8 @@ import svgLoader from 'vite-svg-loader';
 import { configDefaults } from 'vitest/config';
 
 const baseUrl = process.env.BASE_URL ?? '/';
+// GAIA: Keep the embed build free of service-worker output and analytics loading.
+const isGaiaEmbed = process.env.VITE_GAIA_EMBED === '1';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -53,7 +55,7 @@ export default defineConfig({
     vueJsx(),
     markdown(),
     svgLoader(),
-    VitePWA({
+    ...(!isGaiaEmbed ? [VitePWA({
       registerType: 'autoUpdate',
       strategies: 'generateSW',
       manifest: {
@@ -89,7 +91,7 @@ export default defineConfig({
           },
         ],
       },
-    }),
+    })] : []),
     Components({
       dirs: ['src/'],
       extensions: ['vue', 'md'],
@@ -102,6 +104,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // GAIA: These upstream virtual/plugin imports must resolve in builds where those plugins are omitted.
+      ...(isGaiaEmbed ? {
+        'virtual:pwa-register': fileURLToPath(new URL('./src/gaia/noop-pwa-register.ts', import.meta.url)),
+        './plugins/plausible.plugin': fileURLToPath(new URL('./src/gaia/noop-plausible.plugin.ts', import.meta.url)),
+      } : {}),
     },
   },
   define: {

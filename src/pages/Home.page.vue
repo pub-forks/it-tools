@@ -14,6 +14,8 @@ useHead({ title: 'IT Tools - Handy online tools for developers' });
 const { t } = useI18n();
 
 const favoriteTools = computed(() => toolStore.favoriteTools);
+// GAIA: Sponsor banners may contain external promotional links unsuitable for an embedded frame.
+const isGaiaEmbed = import.meta.env.VITE_GAIA_EMBED === '1';
 
 // Update favorite tools order when drag is finished
 function onUpdateFavoriteTools() {
@@ -25,7 +27,8 @@ function onUpdateFavoriteTools() {
   <div class="pt-50px">
     <div class="grid-wrapper">
       <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
-        <ColoredCard v-if="config.showBanner" :title="$t('home.follow.title')" :icon="IconHeart">
+        <!-- GAIA: Omit the upstream follow/sponsor banner when embedded. -->
+        <ColoredCard v-if="config.showBanner && !isGaiaEmbed" :title="$t('home.follow.title')" :icon="IconHeart">
           {{ $t('home.follow.p1') }}
           <a
             href="https://github.com/CorentinTh/it-tools"

@@ -1,0 +1,51 @@
+name: Gaia embedded distribution
+
+on:
+  push:
+    branches: [gaia]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build embedded distribution
+        run: BASE_URL=/apps/it-tools/ VITE_GAIA_EMBED=1 NODE_OPTIONS=--max_old_space_size=4096 pnpm exec vite build
+      - name: Package distribution
+        shell: bash
+        run: |
+          test -d dist
+          test ! -e dist/sw.js
+          if find dist -type f \( -name 'workbox-*.js' -o -name 'workbox-*.js.map' \) -print -quit | grep -q .; then
+            echo 'Unexpected Workbox output in embedded distribution' >&2
+            exit 1
+          fi
+          if find dist -type l -print -quit | grep -q .; then
+            echo 'Symlinks are not allowed in the embedded distribution archive' >&2
+            exit 1
+          fi
+          tar -C dist -czf it-tools-dist.tar.gz .
+          sha256sum it-tools-dist.tar.gz > it-tools-dist.tar.gz.sha256
+      - name: Publish prerelease assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: gaia-${{ github.sha }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" it-tools-dist.tar.gz it-tools-dist.tar.gz.sha256 --clobber
+          else
+            gh release create "$TAG" it-tools-dist.tar.gz it-tools-dist.tar.gz.sha256 --target "$GITHUB_SHA" --prerelease --title "Gaia embedded build $TAG" --notes "Automated embedded distribution for commit ${{ github.sha }}."
+          fi
