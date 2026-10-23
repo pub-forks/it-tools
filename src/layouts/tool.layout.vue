@@ -8,6 +8,8 @@ import FavoriteButton from '@/components/FavoriteButton.vue';
 import type { Tool } from '@/tools/tools.types';
 
 const route = useRoute();
+// GAIA: Keep only the actual tool body in the embedded frame.
+const isGaiaEmbed = import.meta.env.VITE_GAIA_EMBED === '1';
 
 const head = computed<HeadObject>(() => ({
   title: `${route.meta.name} - IT Tools`,
@@ -31,31 +33,36 @@ const toolDescription = computed<string>(() => t(`tools.${i18nKey.value}.descrip
 </script>
 
 <template>
-  <BaseLayout>
-    <div class="tool-layout">
-      <div class="tool-header">
-        <div flex flex-nowrap items-center justify-between>
-          <n-h1>
-            {{ toolTitle }}
-          </n-h1>
+  <div v-if="isGaiaEmbed" class="tool-content gaia-tool-content">
+    <slot />
+  </div>
+  <template v-else>
+    <BaseLayout>
+      <div class="tool-layout">
+        <div class="tool-header">
+          <div flex flex-nowrap items-center justify-between>
+            <n-h1>
+              {{ toolTitle }}
+            </n-h1>
 
-          <div>
-            <FavoriteButton :tool="{ name: route.meta.name, path: route.path } as Tool" />
+            <div>
+              <FavoriteButton :tool="{ name: route.meta.name, path: route.path } as Tool" />
+            </div>
+          </div>
+
+          <div class="separator" />
+
+          <div class="description">
+            {{ toolDescription }}
           </div>
         </div>
-
-        <div class="separator" />
-
-        <div class="description">
-          {{ toolDescription }}
-        </div>
       </div>
-    </div>
 
-    <div class="tool-content">
-      <slot />
-    </div>
-  </BaseLayout>
+      <div class="tool-content">
+        <slot />
+      </div>
+    </BaseLayout>
+  </template>
 </template>
 
 <style lang="less" scoped>
@@ -70,6 +77,12 @@ const toolDescription = computed<string>(() => t(`tools.${i18nKey.value}.descrip
   ::v-deep(& > *) {
     flex: 0 1 600px;
   }
+}
+
+// GAIA: The host owns page padding and scrolling; the frame reports natural body height.
+.gaia-tool-content {
+  min-height: 0;
+  padding: 16px;
 }
 
 .tool-layout {

@@ -72,3 +72,35 @@ describe('Gaia theme synchronization', () => {
     expect(applyTheme).toHaveBeenLastCalledWith(false);
   });
 });
+
+const validTokens = {
+  background: '#000000',
+  foreground: '#ffffff',
+  card: '#111111',
+  cardForeground: '#ffffff',
+  popover: '#111111',
+  popoverForeground: '#ffffff',
+  muted: '#222222',
+  mutedForeground: '#aaaaaa',
+  border: '#333333',
+  input: '#111111',
+  primary: '#ff8800',
+  primaryForeground: '#ffffff',
+  accent: '#222222',
+  accentForeground: '#ffffff',
+  destructive: '#cc0000',
+  destructiveForeground: '#ffffff',
+  ring: '#ff8800',
+  brand: '#ff8800',
+  brandForeground: '#000000',
+  radius: 8,
+};
+
+describe('Gaia token protocol validation', () => {
+  it('accepts valid tokens and ignores the whole tokens object if any field is invalid', () => {
+    expect(validateGaiaMessage({ type: 'gaia-it-tools:init', v: 1, storage: {}, dark: false, tokens: validTokens })).toMatchObject({ tokens: validTokens });
+    const invalid = validateGaiaMessage({ type: 'gaia-it-tools:theme', v: 1, dark: true, tokens: { ...validTokens, radius: 33 } });
+    expect(invalid).toMatchObject({ dark: true });
+    expect(invalid?.type === 'gaia-it-tools:theme' ? invalid.tokens : undefined).toBeUndefined();
+  });
+});

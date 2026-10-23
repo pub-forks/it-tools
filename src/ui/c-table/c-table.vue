@@ -4,6 +4,8 @@ import type { HeaderConfiguration } from './c-table.types';
 
 const props = withDefaults(defineProps<{ data?: Record<string, unknown>[]; headers?: HeaderConfiguration ; hideHeaders?: boolean; description?: string }>(), { data: () => [], headers: undefined, hideHeaders: false, description: 'Data table' });
 const { data, headers: rawHeaders, hideHeaders } = toRefs(props);
+// GAIA: Use token-backed table surfaces only in embedded builds.
+const isGaiaEmbed = import.meta.env.VITE_GAIA_EMBED === '1';
 
 const headers = computed(() => {
   if (rawHeaders.value) {
@@ -37,7 +39,7 @@ const headers = computed(() => {
 </script>
 
 <template>
-  <div class="relative overflow-x-auto rounded">
+  <div class="relative overflow-x-auto rounded" :class="{ 'gaia-c-table': isGaiaEmbed }">
     <table class="w-full border-collapse text-left text-sm text-gray-500 dark:text-gray-400" role="table" :aria-label="description">
       <thead v-if="!hideHeaders" class="bg-#ffffff uppercase text-gray-700 dark:bg-#333333 dark:text-gray-400" border-b="1px solid dark:transparent #efeff5">
         <tr>
@@ -63,3 +65,20 @@ const headers = computed(() => {
     </table>
   </div>
 </template>
+
+<style scoped>
+/* GAIA: Replace upstream utility colors with Gaia's neutral table palette in embed mode. */
+.gaia-c-table table {
+  color: var(--gaia-muted-foreground);
+}
+.gaia-c-table thead {
+  background: var(--gaia-muted);
+  color: var(--gaia-foreground);
+  border-color: var(--gaia-border);
+}
+.gaia-c-table tbody tr {
+  background: var(--gaia-card);
+  color: var(--gaia-foreground);
+  border-color: var(--gaia-border);
+}
+</style>

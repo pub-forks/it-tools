@@ -76,6 +76,8 @@ const validation
 
 const theme = useTheme();
 const appTheme = useAppTheme();
+// GAIA: Gate the neutral label and focus treatment to embedded builds.
+const isGaiaEmbed = import.meta.env.VITE_GAIA_EMBED === '1';
 
 const textareaRef = ref<HTMLTextAreaElement>();
 const inputRef = ref<HTMLInputElement>();
@@ -145,7 +147,7 @@ defineExpose({
 <template>
   <div
     class="c-input-text"
-    :class="{ disabled, 'error': !validation.isValid, 'label-left': labelPosition === 'left', multiline }"
+    :class="{ disabled, 'error': !validation.isValid, 'label-left': labelPosition === 'left', multiline, 'gaia-c-input-embed': isGaiaEmbed }"
   >
     <label v-if="label" :for="id" class="label"> {{ label }} </label>
 
@@ -302,11 +304,12 @@ defineExpose({
     }
 
     &:hover {
-      border-color: v-bind('appTheme.primary.color');
+      border-color: v-bind('isGaiaEmbed ? theme.hoverBorderColor : appTheme.primary.color');
     }
 
     &:focus-within {
-      border-color: v-bind('appTheme.primary.color');
+      border-color: v-bind('isGaiaEmbed ? theme.focusBorderColor : appTheme.primary.color');
+      box-shadow: v-bind('isGaiaEmbed ? theme.focusBoxShadow : "none"');
 
       background-color: v-bind('theme.focus.backgroundColor');
     }
@@ -337,5 +340,10 @@ defineExpose({
       cursor: not-allowed;
     }
   }
+}
+
+/* GAIA: Match embedded form labels to Gaia's muted foreground token. */
+.c-input-text.gaia-c-input-embed > .label {
+  color: v-bind('appTheme.text.mutedColor');
 }
 </style>

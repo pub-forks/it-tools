@@ -26,6 +26,8 @@ const props = withDefaults(
 const emits = defineEmits(['update:value']);
 
 const { options: rawOptions, placeholder, size: sizeName, searchable } = toRefs(props);
+// GAIA: Embedded select hover and focus use resolved neutral/brand theme states.
+const isGaiaEmbed = import.meta.env.VITE_GAIA_EMBED === '1';
 
 const options = computed(() => {
   return rawOptions.value.map((option: string | CSelectOption<T>) => {
@@ -142,10 +144,9 @@ function onSearchInput() {
     <div ref="elementRef" relative class="c-select" w-full>
       <div
         flex flex-nowrap cursor-pointer items-center
-        :class="{ 'is-open': isOpen, 'important:border-primary': isOpen }"
+        :class="{ 'is-open': isOpen, 'important:border-primary': isOpen, 'gaia-c-select-embed': isGaiaEmbed, 'hover:important:border-primary': !isGaiaEmbed }"
         class="c-select-input"
         tabindex="0"
-        hover:important:border-primary
         @click="toggleOpen"
         @keydown="handleKeydown"
       >
@@ -243,6 +244,15 @@ function onSearchInput() {
       }
     }
   }
+}
+
+// GAIA: Keep the unfocused select border neutral; reserve the brand for open/focus.
+.c-select-input.gaia-c-select-embed:hover {
+  border-color: v-bind('theme.hoverBorderColor') !important;
+}
+.c-select-input.gaia-c-select-embed.is-open {
+  border-color: v-bind('theme.focusBorderColor') !important;
+  box-shadow: v-bind('theme.focusBoxShadow');
 }
 
 .dropdown-enter-active,

@@ -24,69 +24,73 @@ function onUpdateFavoriteTools() {
 </script>
 
 <template>
-  <div class="pt-50px">
-    <div class="grid-wrapper">
-      <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
-        <!-- GAIA: Omit the upstream follow/sponsor banner when embedded. -->
-        <ColoredCard v-if="config.showBanner && !isGaiaEmbed" :title="$t('home.follow.title')" :icon="IconHeart">
-          {{ $t('home.follow.p1') }}
-          <a
-            href="https://github.com/CorentinTh/it-tools"
-            rel="noopener"
-            target="_blank"
-            :aria-label="$t('home.follow.githubRepository')"
-          >GitHub</a>
-          {{ $t('home.follow.p2') }}
-          <a
-            href="https://x.com/ittoolsdottech"
-            rel="noopener"
-            target="_blank"
-            :aria-label="$t('home.follow.twitterXAccount')"
-          >X</a>.
-          {{ $t('home.follow.thankYou') }}
-          <n-icon :component="IconHeart" />
-        </ColoredCard>
-      </div>
-
-      <transition name="height">
-        <div v-if="toolStore.favoriteTools.length > 0">
-          <h3 class="mb-5px mt-25px text-neutral-400 font-500">
-            {{ $t('home.categories.favoriteTools') }}
-            <c-tooltip :tooltip="$t('home.categories.favoritesDndToolTip')">
-              <n-icon :component="IconDragDrop" size="18" />
-            </c-tooltip>
-          </h3>
-          <Draggable
-            :list="favoriteTools"
-            class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4"
-            ghost-class="ghost-favorites-draggable"
-            item-key="name"
-            @end="onUpdateFavoriteTools"
-          >
-            <template #item="{ element: tool }">
-              <ToolCard :tool="tool" />
-            </template>
-          </Draggable>
+  <!-- GAIA: Gaia renders the embedded home catalog in the parent page. -->
+  <div v-if="isGaiaEmbed" />
+  <template v-else>
+    <div class="pt-50px">
+      <div class="grid-wrapper">
+        <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
+          <!-- GAIA: Omit the upstream follow/sponsor banner when embedded. -->
+          <ColoredCard v-if="config.showBanner && !isGaiaEmbed" :title="$t('home.follow.title')" :icon="IconHeart">
+            {{ $t('home.follow.p1') }}
+            <a
+              href="https://github.com/CorentinTh/it-tools"
+              rel="noopener"
+              target="_blank"
+              :aria-label="$t('home.follow.githubRepository')"
+            >GitHub</a>
+            {{ $t('home.follow.p2') }}
+            <a
+              href="https://x.com/ittoolsdottech"
+              rel="noopener"
+              target="_blank"
+              :aria-label="$t('home.follow.twitterXAccount')"
+            >X</a>.
+            {{ $t('home.follow.thankYou') }}
+            <n-icon :component="IconHeart" />
+          </ColoredCard>
         </div>
-      </transition>
 
-      <div v-if="toolStore.newTools.length > 0">
+        <transition name="height">
+          <div v-if="toolStore.favoriteTools.length > 0">
+            <h3 class="mb-5px mt-25px text-neutral-400 font-500">
+              {{ $t('home.categories.favoriteTools') }}
+              <c-tooltip :tooltip="$t('home.categories.favoritesDndToolTip')">
+                <n-icon :component="IconDragDrop" size="18" />
+              </c-tooltip>
+            </h3>
+            <Draggable
+              :list="favoriteTools"
+              class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4"
+              ghost-class="ghost-favorites-draggable"
+              item-key="name"
+              @end="onUpdateFavoriteTools"
+            >
+              <template #item="{ element: tool }">
+                <ToolCard :tool="tool" />
+              </template>
+            </Draggable>
+          </div>
+        </transition>
+
+        <div v-if="toolStore.newTools.length > 0">
+          <h3 class="mb-5px mt-25px text-neutral-400 font-500">
+            {{ t('home.categories.newestTools') }}
+          </h3>
+          <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
+            <ToolCard v-for="tool in toolStore.newTools" :key="tool.name" :tool="tool" />
+          </div>
+        </div>
+
         <h3 class="mb-5px mt-25px text-neutral-400 font-500">
-          {{ t('home.categories.newestTools') }}
+          {{ $t('home.categories.allTools') }}
         </h3>
         <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
-          <ToolCard v-for="tool in toolStore.newTools" :key="tool.name" :tool="tool" />
+          <ToolCard v-for="tool in toolStore.tools" :key="tool.name" :tool="tool" />
         </div>
       </div>
-
-      <h3 class="mb-5px mt-25px text-neutral-400 font-500">
-        {{ $t('home.categories.allTools') }}
-      </h3>
-      <div class="grid grid-cols-1 gap-12px lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-4">
-        <ToolCard v-for="tool in toolStore.tools" :key="tool.name" :tool="tool" />
-      </div>
     </div>
-  </div>
+  </template>
 </template>
 
 <style scoped lang="less">

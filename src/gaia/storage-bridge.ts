@@ -1,13 +1,16 @@
 // GAIA: Isolate browser storage and synchronize only the explicitly supported host protocol.
+import { setGaiaThemeTokens, validateThemeTokens } from './theme-tokens';
+
 export interface GaiaInitMessage {
   type: 'gaia-it-tools:init'
   v: 1
   storage: Record<string, string>
   dark: boolean
   path?: string
+  tokens?: unknown
 };
 
-export interface GaiaThemeMessage { type: 'gaia-it-tools:theme'; v: 1; dark: boolean };
+export interface GaiaThemeMessage { type: 'gaia-it-tools:theme'; v: 1; dark: boolean; tokens?: unknown };
 export interface GaiaNavigateMessage { type: 'gaia-it-tools:navigate'; v: 1; path: string };
 export type GaiaIncomingMessage = GaiaInitMessage | GaiaThemeMessage | GaiaNavigateMessage;
 
@@ -43,10 +46,12 @@ export function validateGaiaMessage(value: unknown): GaiaIncomingMessage | undef
     if (value.path !== undefined && !isValidNavigatePath(value.path)) {
       return undefined;
     }
-    return value as unknown as GaiaInitMessage;
+    const tokens = validateThemeTokens(value.tokens) ? { tokens: value.tokens } : {};
+    return { ...value, ...tokens } as unknown as GaiaInitMessage;
   }
   if (value.type === 'gaia-it-tools:theme' && typeof value.dark === 'boolean') {
-    return value as unknown as GaiaThemeMessage;
+    const tokens = validateThemeTokens(value.tokens) ? { tokens: value.tokens } : {};
+    return { type: value.type, v: 1, dark: value.dark, ...tokens };
   }
   if (value.type === 'gaia-it-tools:navigate' && isValidNavigatePath(value.path)) {
     return value as unknown as GaiaNavigateMessage;
@@ -158,6 +163,9 @@ export function installGaiaBridge(): Promise<void> {
       }
       if (message.type === 'gaia-it-tools:theme') {
         queueTheme(message.dark);
+        if (message.tokens) {
+          setGaiaThemeTokens(message.tokens);
+        }
       }
       if (message.type === 'gaia-it-tools:navigate') {
         navigationHandler?.(message.path);
@@ -173,6 +181,9 @@ export function installGaiaBridge(): Promise<void> {
       initialPath = message.path;
       installStorage(message.storage);
       themeSync.setTheme(message.dark);
+      if (message.tokens) {
+        setGaiaThemeTokens(message.tokens);
+      }
       seedInitialTheme(message.dark);
       complete();
     };

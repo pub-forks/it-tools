@@ -14,6 +14,9 @@ import App from './App.vue';
 import router from './router';
 import { i18nPlugin } from './plugins/i18n.plugin';
 import { useStyleStore } from './stores/style.store';
+import { toolsWithCategory } from './tools';
+import { buildCatalog } from './gaia/catalog';
+import { observeToolContent } from './gaia/size-bridge';
 
 // GAIA: Embedded builds omit PWA registration and analytics even if upstream flags are enabled.
 const isGaiaEmbed = import.meta.env.VITE_GAIA_EMBED === '1';
@@ -33,6 +36,8 @@ app.use(plausible);
 app.use(shadow);
 
 if (isGaiaEmbed) {
+  void import('./gaia/fonts');
+  observeToolContent(message => window.parent.postMessage(message, '*'));
   import('./gaia/storage-bridge').then(({ getGaiaInitialPath, isValidNavigatePath, setGaiaNavigationHandler, setGaiaThemeHandler }) => {
     // GAIA: Update VueUse's reactive theme ref so the page class and Naive UI theme stay synchronized.
     setGaiaThemeHandler((dark) => {
@@ -52,6 +57,8 @@ if (isGaiaEmbed) {
       }
     });
     void router.isReady().then(() => {
+      // GAIA: The catalog is sent after the storage bridge's ready notification.
+      window.parent.postMessage({ type: 'gaia-it-tools:catalog', v: 1, tools: buildCatalog(toolsWithCategory) }, '*');
       postRoute(router.currentRoute.value.path);
       const path = getGaiaInitialPath();
       if (path) {
