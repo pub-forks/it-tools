@@ -1,12 +1,14 @@
-name: Gaia embedded distribution
+name: Gaia embedded build check
 
 on:
   push:
     branches: [gaia]
   workflow_dispatch:
 
+# Build check only. Releases are published from the Gaia checkout (scripts/publish-it-tools.mjs);
+# the pub-forks org caps GITHUB_TOKEN at read-only.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -39,13 +41,3 @@ jobs:
           fi
           tar -C dist -czf it-tools-dist.tar.gz .
           sha256sum it-tools-dist.tar.gz > it-tools-dist.tar.gz.sha256
-      - name: Publish prerelease assets
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: gaia-${{ github.sha }}
-        run: |
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" it-tools-dist.tar.gz it-tools-dist.tar.gz.sha256 --clobber
-          else
-            gh release create "$TAG" it-tools-dist.tar.gz it-tools-dist.tar.gz.sha256 --target "$GITHUB_SHA" --prerelease --title "Gaia embedded build $TAG" --notes "Automated embedded distribution for commit ${{ github.sha }}."
-          fi
